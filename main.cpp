@@ -1,5 +1,6 @@
+#define _USE_MATH_DEFINES
+#include "math.h"
 #include <algorithm>
-#include <cmath>
 #include <cstdio>
 #include <iostream>
 #include <vector>
@@ -8,34 +9,32 @@ using namespace std;
 
 struct Point
 {
-  int x;
-  int y;
+  double x;
+  double y;
 
   Point operator-(Point pointR) {
     return Point{this->x - pointR.x, this->y - pointR.y};
   }
 };
 
-int crossProduct(Point pointA, Point pointB)
-{
+double crossProduct(Point pointA, Point pointB) {
   return pointA.x * pointB.y - pointA.y * pointB.x;
 }
 
-int dotProduct(Point pointA, Point pointB)
-{
+double dotProduct(Point pointA, Point pointB) {
   return pointA.x * pointB.x + pointA.y * pointB.y;
 }
 
 // Distance from origin
 double distance(Point point) {
-  return sqrt((double)(point.x * point.x + point.y * point.y));
+  return sqrt((double)point.x * point.x + (double)point.y * point.y);
 }
 
 double findMinDistance(Point pointA, Point pointB, Point origin) {
   if (dotProduct(origin - pointA, pointB - pointA) > 0 &&
       dotProduct(origin - pointB, pointA - pointB) > 0) {
     // min point is on line
-    int area = crossProduct(origin - pointA, pointB - pointA);
+    double area = crossProduct(origin - pointA, pointB - pointA);
     if (area < 0) {
       area = crossProduct(pointB - pointA, origin - pointA);
     }
