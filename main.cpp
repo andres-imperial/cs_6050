@@ -82,99 +82,78 @@ long long dotProduct(Point pointA, Point pointB) {
   return pointA.x * pointB.x + pointA.y * pointB.y;
 }
 
-struct LetterA {
+struct Rectangle {
   vector<Segment> segments;
 
   bool evaluate() {
-    // first do any segments share a point
-    int middleSeg;
     Point sharedPoint;
+    Segment masterSegment = *segments.begin();
+    segments.erase(segments.begin());
+    Segment currentSegment = masterSegment;
+    Point currentSharedPoint;
     Point legA;
     Point legB;
-    if (segments[0].sharePoint(segments[1], sharedPoint, legA, legB)) {
-      // do something
-      middleSeg = 2;
-    } else if (segments[0].sharePoint(segments[2], sharedPoint, legA, legB)) {
-      // do something
-      middleSeg = 1;
-    } else if (segments[1].sharePoint(segments[2], sharedPoint, legA, legB)) {
-      // do something
-      middleSeg = 0;
-    } else {
-      return false; // no common point found
+    for (auto iter = segments.begin(); iter != segments.end();) {
+      if (currentSegment.sharePoint(*iter, currentSharedPoint, legA, legB)) {
+        if (currentSharedPoint == sharedPoint) {
+          return false;
+        } else {
+          sharedPoint = currentSharedPoint;
+        }
+        if (dotProduct(legA, legB) != 0) {
+          return false; // they did not form a 90 degree corner
+        }
+        if (legA.x * legA.y != 0 || legB.x * legB.y != 0) {
+          return false;
+        }
+        currentSegment = *iter;
+        segments.erase(iter);
+        iter = segments.begin();
+      } else {
+        ++iter;
+      }
     }
 
-    if (crossProduct(legA, legB) == 0 || dotProduct(legA, legB) < 0) {
+    if (!segments.empty()) {
       return false;
     }
 
-    if (crossProduct(legA, segments[middleSeg].start - sharedPoint) == 0 &&
-        dotProduct(legB, segments[middleSeg].start - sharedPoint) >= 0) {
-      if (crossProduct(legB, segments[middleSeg].end - sharedPoint) == 0 &&
-          dotProduct(legA, segments[middleSeg].end - sharedPoint) >= 0) {
-        auto ratioA = getRatio(legA, segments[middleSeg].start - sharedPoint);
-        auto ratioB = getRatio(legB, segments[middleSeg].end - sharedPoint);
-        if (ratioA || ratioB) {
-          return false; // ratios were incorrect
-        } else {
-          return true;
-        }
+    if (currentSegment.sharePoint(masterSegment, currentSharedPoint, legA,
+                                  legB)) {
+      if (currentSharedPoint == sharedPoint) {
+        return false;
       }
-    } else if (crossProduct(legA, segments[middleSeg].end - sharedPoint) == 0 &&
-               dotProduct(legB, segments[middleSeg].end - sharedPoint) >= 0) {
-      if (crossProduct(legB, segments[middleSeg].start - sharedPoint) == 0 &&
-          dotProduct(legA, segments[middleSeg].start - sharedPoint) >= 0) {
-        auto ratioA = getRatio(legA, segments[middleSeg].end - sharedPoint);
-        auto ratioB = getRatio(legB, segments[middleSeg].start - sharedPoint);
-        if (ratioA || ratioB) {
-          return false; // ratios were incorrect
-        } else {
-          return true;
-        }
+      if (dotProduct(legA, legB) != 0) {
+        return false; // they did not form a 90 degree corner
       }
     } else {
-      return false; // middle segment did not have a co linear point with leg
+      return false;
     }
 
-    return false;
-  }
-
-  void print() {
-    for (auto segment : segments) {
-      segment.print();
-      printf("\n");
-    }
+    return true;
   }
 };
 
 int main(void)
 {
-  int numAs = 0;
-  cin >> numAs;
+  Rectangle myRectangle;
 
-  vector<LetterA> letterAs(numAs);
   int userX;
   int userY;
-  for (int i = 0; i < numAs; ++i) {
-    LetterA myA;
-    for (int i = 0; i < 3; ++i) {
-      cin >> userX;
-      cin >> userY;
-      Point start{userX, userY};
-      cin >> userX;
-      cin >> userY;
-      Point end{userX, userY};
-      myA.segments.push_back(Segment{start, end});
-    }
-    letterAs[i] = myA;
+  for (int i = 0; i < 4; ++i) {
+    cin >> userX;
+    cin >> userY;
+    Point start{userX, userY};
+    cin >> userX;
+    cin >> userY;
+    Point end{userX, userY};
+    myRectangle.segments.push_back(Segment{start, end});
   }
 
-  for (auto myA : letterAs) {
-    if (myA.evaluate()) {
-      printf("YES\n");
-    } else {
-      printf("NO\n");
-    }
+  if (myRectangle.evaluate()) {
+    printf("YES\n");
+  } else {
+    printf("NO\n");
   }
 
     return 0;
