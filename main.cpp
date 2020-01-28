@@ -21,59 +21,6 @@ struct Point
   }
 };
 
-struct Segment {
-  Point start;
-  Point end;
-
-  bool sharePoint(Segment segmentR, Point &shared, Point &lVector,
-                  Point &rVector) {
-    if (this->end == segmentR.end) {
-      shared = end;
-      lVector = this->start - this->end;
-      rVector = segmentR.start - segmentR.end;
-      return true;
-    } else if (this->end == segmentR.start) {
-      shared = end;
-      lVector = this->start - this->end;
-      rVector = segmentR.end - segmentR.start;
-      return true;
-    } else if (this->start == segmentR.start) {
-      shared = start;
-      lVector = this->end - this->start;
-      rVector = segmentR.end - segmentR.start;
-      return true;
-    } else if (this->start == segmentR.end) {
-      shared = start;
-      lVector = this->end - this->start;
-      rVector = segmentR.start - segmentR.end;
-      return true;
-    }
-
-    return false;
-  }
-
-  void print() {
-    printf("%lli %lli %lli %lli", start.x, start.y, end.x, end.y);
-  }
-};
-
-// Distance from origin
-double distance(Point point) {
-  return sqrt((double)point.x * point.x + (double)point.y * point.y);
-}
-
-double getRatio(Point pointA, Point pointB) {
-  auto firstX = std::abs(pointB.x);
-  auto firstY = std::abs(pointB.y);
-  auto secondX = std::abs(pointA.x);
-  auto secondY = std::abs(pointA.y);
-  if (firstX * 5 < secondX || firstX * 1.25 > secondX)
-    return true;
-  if (firstY * 5 < secondY || firstY * 1.25 > secondY)
-    return true;
-  return false;
-}
-
 long long crossProduct(Point pointA, Point pointB) {
   return pointA.x * pointB.y - pointA.y * pointB.x;
 }
@@ -82,79 +29,45 @@ long long dotProduct(Point pointA, Point pointB) {
   return pointA.x * pointB.x + pointA.y * pointB.y;
 }
 
-struct Rectangle {
-  vector<Segment> segments;
-
-  bool evaluate() {
-    Point sharedPoint;
-    Segment masterSegment = *segments.begin();
-    segments.erase(segments.begin());
-    Segment currentSegment = masterSegment;
-    Point currentSharedPoint;
-    Point legA;
-    Point legB;
-    for (auto iter = segments.begin(); iter != segments.end();) {
-      if (currentSegment.sharePoint(*iter, currentSharedPoint, legA, legB)) {
-        if (currentSharedPoint == sharedPoint) {
-          return false;
-        } else {
-          sharedPoint = currentSharedPoint;
-        }
-        if (dotProduct(legA, legB) != 0) {
-          return false; // they did not form a 90 degree corner
-        }
-        if (legA.x * legA.y != 0 || legB.x * legB.y != 0) {
-          return false;
-        }
-        currentSegment = *iter;
-        segments.erase(iter);
-        iter = segments.begin();
-      } else {
-        ++iter;
-      }
-    }
-
-    if (!segments.empty()) {
-      return false;
-    }
-
-    if (currentSegment.sharePoint(masterSegment, currentSharedPoint, legA,
-                                  legB)) {
-      if (currentSharedPoint == sharedPoint) {
-        return false;
-      }
-      if (dotProduct(legA, legB) != 0) {
-        return false; // they did not form a 90 degree corner
-      }
-    } else {
-      return false;
-    }
-
-    return true;
-  }
-};
-
 int main(void)
 {
-  Rectangle myRectangle;
+  int numPoints = 0;
+  long long originX, originY;
+  cin >> numPoints;
+  cin >> originX;
+  cin >> originY;
+  Point origin{0, 0};
+
+  vector<Point> points(numPoints);
 
   int userX;
   int userY;
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < numPoints; ++i) {
     cin >> userX;
     cin >> userY;
-    Point start{userX, userY};
-    cin >> userX;
-    cin >> userY;
-    Point end{userX, userY};
-    myRectangle.segments.push_back(Segment{start, end});
+    points[i] = Point{userX - originX, userY - originY};
+    if (points[i].x < 0 && points[i].y == 0 || points[i].y < 0) {
+      points[i].x = -points[i].x;
+      points[i].y = -points[i].y;
+    }
   }
 
-  if (myRectangle.evaluate()) {
-    printf("YES\n");
-  } else {
-    printf("NO\n");
-  }
+  sort(points.begin(), points.end(), [](Point left, Point right) {
+    if (crossProduct(left, right) < 0) {
+      return true;
+    }
+    return false;
+  });
 
-    return 0;
+  unsigned int total = 0;
+  for (int i = 1; i < points.size(); ++i) {
+    if (crossProduct(points[i - 1], points[i]) != 0) {
+      ++total;
+    }
+  }
+  ++total;
+
+  printf("%u\n", total);
+
+  return 0;
 }
