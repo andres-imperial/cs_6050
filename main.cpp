@@ -31,13 +31,8 @@ long long dotProduct(Point pointA, Point pointB) {
 
 int main(void)
 {
-  int numPoints = 0;
-  long long originX, originY;
+  unsigned long long numPoints = 0;
   cin >> numPoints;
-  cin >> originX;
-  cin >> originY;
-  Point origin{0, 0};
-
   vector<Point> points(numPoints);
 
   int userX;
@@ -45,29 +40,48 @@ int main(void)
   for (int i = 0; i < numPoints; ++i) {
     cin >> userX;
     cin >> userY;
-    points[i] = Point{userX - originX, userY - originY};
-    if (points[i].x < 0 && points[i].y == 0 || points[i].y < 0) {
-      points[i].x = -points[i].x;
-      points[i].y = -points[i].y;
-    }
+    points[i] = Point{userX, userY};
   }
-
-  sort(points.begin(), points.end(), [](Point left, Point right) {
-    if (crossProduct(left, right) < 0) {
-      return true;
-    }
-    return false;
-  });
 
   unsigned int total = 0;
-  for (int i = 1; i < points.size(); ++i) {
-    if (crossProduct(points[i - 1], points[i]) != 0) {
-      ++total;
-    }
-  }
-  ++total;
+  for (unsigned int counter = 0; counter < points.size(); ++counter) {
+    auto newPoints = points;
+    auto iter = newPoints.begin();
+    Point origin = points[counter];
+    newPoints.erase(newPoints.begin() + counter);
 
-  printf("%u\n", total);
+    for (auto &&point : newPoints) {
+      point = point - origin;
+      if ((point.x < 0 && point.y == 0) || point.y < 0) {
+        point.x = -point.x;
+        point.y = -point.y;
+      }
+    }
+
+    sort(newPoints.begin(), newPoints.end(), [origin](Point left, Point right) {
+      if (crossProduct(left, right) < 0) {
+        return true;
+      }
+      return false;
+    });
+
+    unsigned int colinear = 1;
+    for (int i = 1; i < newPoints.size(); ++i) {
+      if (crossProduct(newPoints[i - 1], newPoints[i]) == 0) {
+        ++colinear;
+      } else {
+        total += ((colinear) * (colinear - 1)) / 2;
+        colinear = 1;
+      }
+    }
+    total += ((colinear) * (colinear - 1)) / 2;
+  }
+
+  unsigned long long goodTriangles =
+      (numPoints * (numPoints - 1) * (numPoints - 2)) / 6;
+  goodTriangles -= total / 3;
+
+  printf("%llu\n", goodTriangles);
 
   return 0;
 }
